@@ -129,7 +129,30 @@ function Test-ValidIPAddress ($IPAddress) {
    
 }
 
-
+function Get-ClassfullSubnet{
+   param($IP,$BinaryIP)
+   if(-not $IP){if(-not $BinaryIP){throw "IP Address Required"}}
+   if(-not $BinaryIP){$BinaryIP = get-BinaryDottedString $IP}
+   if($BinaryIP[0] -eq '0')      {
+      # Class A Network
+      $SUB =  "255.0.0.0"
+   }
+   elseif($BinaryIP[1] -eq '0')  {
+      # Class B Network
+      $SUB =  "255.255.0.0"
+   }
+   elseif($BinaryIP[2] -eq '0')  {
+      # Class C Network
+      $SUB =  "255.255.255.0"
+   }else{
+      throw "Not a Class A, B or C Network"
+   }
+   if($Binary){
+      return get-BinaryDottedString $SUB
+   }
+   return $SUB
+   
+}
 
 
 # Exported Functions
@@ -197,22 +220,18 @@ function Test-IPNetwork{
 }
 
 function Get-IPNetID {
-   param($IP,$Sub,[switch]$Binary = $False)
+   param($IP,$SubnetMask,[switch]$Binary = $False)
+   # "IP:  $IP"
+   # "SUB: $SubnetMask"
+   if(-not $SubnetMask){ $IP,$SubnetMask = get-IPandSubnet $IP}
    $BinaryIP = get-BinaryDottedString $ip
-   if(-not $sub){
-      if($BinaryIP[0] -eq '0')      {
-         # Class A Network
-         $BinarySub = get-BinaryDottedString "255.0.0.0"
-      }
-      elseif($BinaryIP[1] -eq '0')  {
-         # Class B Network
-         $BinarySub = get-BinaryDottedString "255.255.0.0"
-      }
-      elseif($BinaryIP[2] -eq '0')  {
-         # Class C Network
-         $BinarySub = get-BinaryDottedString "255.255.255.0"
-      }
-   }else{$BinarySub = get-BinaryDottedString $sub}
+   # "IP:  $IP"
+   # "SUB: $SubnetMask"
+   if(-not $SubnetMask){
+      $BinarySub = Get-ClassfullSubnet -Binary -IP $IP -BinaryIP $BinaryIP
+   } else {
+      $BinarySub = get-BinaryDottedString $SubnetMask
+   }
    $BinaryNetID = ""
    for ($i = 0; $i -lt $BinarySub.length; $i++) {
       if($BinarySub[$i] -eq '1' -or $BinarySub[$i] -eq '.' )
