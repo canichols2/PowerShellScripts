@@ -6,9 +6,12 @@
 
 # I Cody wrote this script as original work completed by me.
 
-# Your Network Utility: <describe your network utility here>
+# Your Network Utility: Basic network functions from class. 
+#        One netwok function that helps me so I can look at the Binary representation of things.
 
-# Support functions: Describe your network support functions.
+# Support functions: I have many support functions because
+#     I wanted to modularize EVERYTHING so it is truely a DRY programming.
+#     Function Help based on microsoft's https://technet.microsoft.com/en-us/library/hh360993.aspx?f=255&MSPPError=-2147217396 page.
 
 #===================================================
 
@@ -21,10 +24,63 @@ function toDecimal($binary){
    [string]$d=[convert]::ToInt32($binary,2)
    $d
 }
-
-function get-IPandSubnet{
+function Get-SubFromCIDR{
+   <#
+   .SYNOPSIS
+   Returns just the subnet from a cidr notation
+   .DESCRIPTION
+   Optionaly will give the Binary or Decimal representation of each
+   .EXAMPLE
+   Get-SubFromCIDR 192.168.18/25    
+   .EXAMPLE
+   Get-SubFromCIDR 192.168.18/25 -Decimal
+   .EXAMPLE
+   192.168.18/25 | Get-SubFromCIDR 
+   .EXAMPLE
+   192.168.18/25 | Get-SubFromCIDR -Binary
+   .EXAMPLE
+   192.168.18/25 | Get-SubFromCIDR -Decimal
+   #>
    param(
-      $IP,
+      [parameter(ValueFromPipeline,Mandatory=$true)]$IP,
+      [switch]$Binary,
+      [switch]$Decimal
+   )
+   if($IP -match "^(\d{1,3}(.(\d){1,3}){3}){0,1}/\d{1,2}$"){
+      $IP,$SUB = $IP.split('/')
+      if($Decimal){
+         # Cider to decimal...
+         $BianryString = get-BinaryDottedString -cider $SUB
+         $DecimalArray = $BianryString.split('.') | %{
+            [convert]::ToInt32($_,2)
+         }
+         return $DecimalArray -join "."
+      }
+      if($Binary){
+         return get-BinaryDottedString -cider $SUB
+      }
+      return $SUB
+   }else{
+      throw "Not CIDR"
+   }
+}
+function Get-IPandSubnet{
+   <#
+   .SYNOPSIS
+   Returns the IP and Subnet of an IP Address.
+   .DESCRIPTION
+   If you leave off the cider notation, it will give you the classfull network of the IP Address.
+   Using the -BinarySub switch, you will get the subnet returned in a binary string.
+   Using the -BinaryIP switch, you will get the IP Address returned in a binary string.
+   Returns a string array with 2 elements. The first is the IP and the other is the Full Subnet.
+   .EXAMPLE
+   Get-IPandSubnet 192.168.18/25    
+   .EXAMPLE
+   192.168.18/25 | Get-IPandSubnet
+   #>
+   [CmdletBinding()]
+   param(
+      [parameter(ValueFromPipeline)]$IP,
       [switch]$BinarySub=$false,
       [switch]$BinaryIP=$false
    )
@@ -49,6 +105,9 @@ function get-IPandSubnet{
             $SUBBinary = get-BinaryDottedString "255.255.255.0"
          }
       }
+   }
+   else{
+      throw "No IP Address given, or wrong format."
    }
    # "IP: $IP"
    # "CIDR: $SUB"
@@ -157,9 +216,25 @@ function Get-ClassfullSubnet{
 
 # Exported Functions
 function Test-IPHost{
+   <#
+   .SYNOPSIS
+   This will test every IP Address associated with a Fully Qualified Domain Name(FQDN)
+   .DESCRIPTION
+   You provide a FQDN and this queries nameservers to determine all IP Addresses associated with that hostname.
+   .EXAMPLE
+   Test-IPHost -HostName "Google.com" 
+   .EXAMPLE
+   "google.com" | Test-IPHost
+   .EXAMPLE
+   Test-IPHost -HostName "Google.com" -Count 2
+   .EXAMPLE
+   Test-IPHost -HostName "Google.com","www.microsoft.com","amazon.com"
+   #>
+   [CmdletBinding()]
    param(
       [Parameter(Mandatory=$True,
-      ValueFromRemainingArguments=$true)]
+      ValueFromRemainingArguments=$true,
+      ValueFromPipeline)]
       [string[]]$HostName,
       $Count = 4
    )
@@ -175,6 +250,22 @@ function Test-IPHost{
 }
 
 function Test-IPNetwork{
+   <#
+   .SYNOPSIS
+   This will test if IP's are in fact on the same network.
+   .DESCRIPTION
+   You can provide 2 IP addresses, and a subnet mask, or provide the netmask as CIDR notation in the first IP address. 
+   This will return true or false depending on wether they are they same network or not.
+   .EXAMPLE
+   Test-IPNetwork 192.168.16.8 192.168.17.2 255.255.255.0
+   .EXAMPLE
+   Test-IPNetwork -IP1 192.168.16.8  -IP2 192.168.17.2  -SubnetMask 255.255.255.0
+   .EXAMPLE
+   Test-IPNetwork 192.168.16.8,192.168.17.2  -SubnetMask 255.255.255.0
+   .EXAMPLE
+   Test-IPNetwork -IP1 192.168.16.8,192.168.17.2  -SubnetMask 255.255.255.0
+   #>
+   [CmdletBinding()]
    param(
       [Parameter(Mandatory=$True,Position=1)]
       $IP1, 
@@ -220,6 +311,7 @@ function Test-IPNetwork{
 }
 
 function Get-IPNetID {
+   [CmdletBinding(SupportsShouldProcess=$True)]
    param($IP,$SubnetMask,[switch]$Binary = $False)
    # "IP:  $IP"
    # "SUB: $SubnetMask"
@@ -246,4 +338,4 @@ function Get-IPNetID {
    $DecimalNetID
 }
 
-Export-ModuleMember -Function get-IPandSubnet,Get-IPNetID,Test-IPNetwork,Test-IPHost
+Export-ModuleMember -Function get-IPandSubnet,Get-IPNetID,Test-IPNetwork,Test-IPHost,Get-SubFromCIDR
