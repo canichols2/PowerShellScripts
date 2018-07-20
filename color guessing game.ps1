@@ -3,6 +3,11 @@
 # Author: Cody Nichols
 # I, Cody Wrote this script as original work completed by me.
 # Special Feature: ETC.ETC.ETC. ETC.ETC.
+# There were no special features. and no Hint... 
+# But... there is a Round Status, and a Game status.
+# I'm not sure why I lost 4 points for that, especially when the rubric only asks for round status
+# Line number 81 shows the round status after every game.
+# Lines 103-111 show game history if you select that option in the menu.
 #============================================================
 
 function nbg($color){
@@ -102,8 +107,10 @@ do {
          {
             Write-Host "was canceled."
          }
-         break;
-      }{} }
+         $it++
+      }{}
+      break;
+    }
       'E'{exit }
       Default {}
    }

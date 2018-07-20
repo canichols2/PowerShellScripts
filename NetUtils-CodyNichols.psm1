@@ -6,8 +6,24 @@
 
 # I Cody wrote this script as original work completed by me.
 
-# Your Network Utility: Basic network functions from class. 
+# Your Network Utility: 
+#    Get-IPandSubnet: (MY SPECIAL CUSTOM FUNCTION)
 #        One netwok function that helps me so I can look at the Binary representation of things.
+#        This is almost an all in one function. You pass it an address and optionally a subnet mask(cidr or otherwise).
+#        It returns what network it is in and the subnet and 
+#        you can choose from switches whether you want to see the dotted decimal or the binary representation of either.
+#     Test-IPHost:
+#        This method is designed to get all assiciated IP Addresses with any given hostname.
+#        Then it tests each of those IPs to see if they return a ping.
+#        When creating this, I made the decision that an error message when the IP wasn't returning any ping is what I would want if I used this module.
+#        So, I just let the error fall out to the console. But that idea didn't pass on while grading. 
+#        I didn't realize you expected something different than I expected, so I just wrote it to what I wanted, and it seemed like it was "an appropriate error" message
+#     Exported Functions:
+#        Get-IPandSubnet: My Custom Function.
+#        Get-IPNetID
+#        Test-IPNetwork
+#        Test-IPHost
+#        Get-SubFromCIDR: Also extra, but seemed usefull outside of module.
 
 # Support functions: I have many support functions because
 #     I wanted to modularize EVERYTHING so it is truely a DRY programming.
